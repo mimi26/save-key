@@ -1,3 +1,9 @@
+/*
+  write a program that runs a server that is accessible on http://localhost:4000/.
+  When your server receives a request on http://localhost:4000/set?somekey=somevalue
+  it should store the passed key and value in memory. When it receives a request on
+  http://localhost:4000/get?key=somekey it should return the value stored at somekey.
+*/
 const http = require('node:http');
 
 const hostname = 'localhost';
@@ -20,33 +26,30 @@ const server = http.createServer((req, res) => {
     res.statusCode = 404;
     return res.end('Incorrectly formatted query.')
   }
-  const paramEntries = url.searchParams.entries();
 
   // 'set' endpoint:
   if (url.pathname === '/set') {
-    // /set?somekey=somevalue
-    for (const [key, val] of paramEntries) {
-      // key or value isn't present
+    for (const [key, val] of url.searchParams) {
+      // if key or value isn't present
       if (!key || !val) {
         res.statusCode = 400;
-        return res.end('key and value required');
+        return res.end('Key and value required');
       }
-      res.statusCode = 200;
 
+      res.statusCode = 200;
       // if key already exists, update existing key/value with new value
       if (Object.keys(keys).includes(key)) {
         keys[key] = val;
-        return res.end('key updated!')
+        return res.end('Key updated!')
       }
 
       // all good: update keys object with new key/value.
       keys = { ...{ [key]: val }, ...keys };
-      console.log('keys:', keys)
-      return res.end('key received!');
+      return res.end('Key received!');
     }
     // 'get' endpoint
   } else if (url.pathname === '/get') {
-    for (const [queryKey, key] of paramEntries) {
+    for (const [queryKey, key] of url.searchParams) {
       // ensure correctly formatted query
       if (queryKey !== 'key') {
         return res.end('Queries must be formatted with keyword "key".');
@@ -56,6 +59,7 @@ const server = http.createServer((req, res) => {
         res.statusCode = 404;
         return res.end('Sorry, your key could not be found. Please try a different key.');
       }
+
       // all good: lookup the value of requested key.
       res.statusCode = 200;
       const val = keys[key];
